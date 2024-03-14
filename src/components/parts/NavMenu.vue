@@ -1,10 +1,27 @@
 <script setup>
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { data, fn } from "../../data.js";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 const route = useRoute();
+const router = useRouter();
+const isAuthenticated = ref(false);
 
+watch(route, () => {
+  const authData = fn.getAuthStorage();
+
+  if (authData != undefined && authData != null && authData != "") {
+    isAuthenticated.value = true;
+  } else {
+    isAuthenticated.value = false;
+  }
+});
+
+const logout = () => {
+  fn.fetchAuthApi("/api/auth/logout", {}, "GET");
+  fn.removeStorage("auth");
+  router.push("/login");
+};
 </script>
 <template>
   <nav
@@ -40,20 +57,40 @@ const route = useRoute();
     </div>
     <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
       <div class="text-sm lg:flex-grow">
-        <router-link class="block text-xl mt-4 lg:inline-block lg:mt-0 hover:text-white mr-10"
-        :class="route.path === '/' ? 'text-white' : 'text-teal-200'" to="/">Home</router-link>
-        <router-link class="block text-xl mt-4 lg:inline-block lg:mt-0 hover:text-white mr-10"
-        :class="route.path === '/about' ? 'text-white' : 'text-teal-200'" to="/about">About</router-link>
         <router-link
-        class="block text-xl mt-4 lg:inline-block lg:mt-0 hover:text-white"
-        :class="route.path.startsWith('/user') ? 'text-white' : 'text-teal-200'"
-        to="/user">User</router-link>
+          class="block text-xl mt-4 lg:inline-block lg:mt-0 hover:text-white mr-10"
+          :class="route.path === '/' ? 'text-white' : 'text-teal-200'"
+          to="/"
+          >Home</router-link
+        >
+        <router-link
+          class="block text-xl mt-4 lg:inline-block lg:mt-0 hover:text-white mr-10"
+          :class="route.path === '/about' ? 'text-white' : 'text-teal-200'"
+          to="/about"
+          >About</router-link
+        >
+        <router-link
+          class="block text-xl mt-4 lg:inline-block lg:mt-0 hover:text-white"
+          :class="
+            route.path.startsWith('/user') ? 'text-white' : 'text-teal-200'
+          "
+          to="/user"
+          >User</router-link
+        >
       </div>
       <div>
         <a
+          v-if="isAuthenticated"
           href="#"
+          @click="logout()"
           class="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0"
           >Logout</a
+        >
+        <router-link
+          v-else
+          class="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0"
+          to="/login"
+          >Login</router-link
         >
       </div>
     </div>
